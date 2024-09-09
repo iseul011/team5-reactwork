@@ -2,6 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 
+// npm i axios
+// npm i react-router-dom
+
 const WriteMessage = () => {
   // URL 쿼리 파라미터에서 수신자 ID 받아오기
   const [searchParams] = useSearchParams();
@@ -48,13 +51,13 @@ const WriteMessage = () => {
         value={receiver}
         onChange={e => setReceiver(e.target.value)}  // 수신자 입력 필드 (자동 설정된 경우 읽기 전용으로 설정하지 않음)
         // readOnly={!!recipient}  // 수신자가 이미 설정된 경우 읽기 전용
-      />
+      /><br/>
       <input
         type="text"
         placeholder="쪽지를 작성해주세요"
         value={mContent}
         onChange={e => setmContent(e.target.value)}  // 메시지 내용 입력 필드
-      />
+      /><br/><br/>
       <button onClick={sendMessage}>전송</button>  {/* 메시지 전송 버튼 */}
     </div>
   );

@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
 import WriteMessage from './components/WriteMessage';
 import Inbox from './components/Inbox';
+import MessageDetail from './components/MessageDetail';
 
 // 버튼을 사용하여 페이지 이동하는 컴포넌트
 function Home() {
@@ -23,6 +24,7 @@ function App() {
         <Routes>
           <Route path="/write" element={<WriteMessage />} />  
           <Route path="/inbox" element={<Inbox />} /> 
+          <Route path="/message/:mNum" element={<MessageDetail />} /> {/* 메시지 상세 보기 페이지 */}
           <Route path="/" element={<Home />} />  {/* 기본 홈 페이지 */}
         </Routes>
       </div>
