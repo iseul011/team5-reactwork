@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
+// import SignUpPage from '../SignUpPage/SignUpPage';
 {/* <style>
 @import url('https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&family=Noto+Sans+KR&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
 </style> */}
@@ -30,13 +31,13 @@ const Login = ({ onLoginSuccess }) => {
         localStorage.setItem('token', response.data[0]);
         setMessage('로그인 성공!');
         onLoginSuccess(); // 로그인 성공 시 호출
-        navigate('/'); // 메인 페이지로 리다이렉트
+        navigate('/Home'); // 메인 페이지로 리다이렉트
       } else {
         setMessage('잘못된 사용자 이름 또는 비밀번호');
       }
     } catch (error) {
       console.error('로그인 오류:', error);
-      setMessage('로그인 실패');
+      setMessage('로그인 실패asdf');
     }
   };
 
@@ -45,6 +46,10 @@ const Login = ({ onLoginSuccess }) => {
     setMessage('로그아웃 되었습니다.');
   };
 
+
+  // const handleSignUp = () =>{
+  //   navigate('/SignUpPage');
+  // }
 
   return (
     <div>
@@ -71,7 +76,7 @@ const Login = ({ onLoginSuccess }) => {
         </table>
         <table className="bu">
           <tr>
-            <td><a href="#" className="signUp">회원가입</a></td>
+            <td><a href="/SignUpPage" className="signUp">회원가입</a></td>
             <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
             <td><a href="#"className="find">아이디/비밀번호 찾기</a></td>
           </tr>

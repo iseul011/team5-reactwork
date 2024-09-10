@@ -1,0 +1,248 @@
+import React, { useState } from 'react';
+import axios from 'axios';
+
+const WriteMessage = () => {
+  const [receiver, setReceiver] = useState('');  // 수신자 상태
+  const [mContent, setmContent] = useState('');  // 메시지 내용 상태
+
+  const sendMessage = () => {
+    axios.post('/api/messages/send', {
+      memId: 'user02',  // 발신자 ID (예시)
+      friendId: receiver,  // 수신자 ID
+      mcontent: mContent   // 메시지 내용
+    })
+    .then(() => {
+      alert('Message sent');
+      setmContent('');  // 입력 필드 초기화
+      setReceiver('');  // 수신자 필드 초기화
+    })
+    .catch(error => console.error("Error sending message:", error));
+  };
+
+  return (
+    <div>
+      <h5>쪽지 보내기</h5>
+      <input
+        type="text"
+        placeholder="받는 사람"
+        value={receiver}
+        onChange={e => setReceiver(e.target.value)}  // 수신자 입력 필드
+      /><br/>
+      <input
+        type="text"
+        placeholder="쪽지를 작성해주세요"
+        value={mContent}
+        onChange={e => setmContent(e.target.value)}  // 메시지 내용 입력 필드
+      /><br/><br/>
+      <button onClick={sendMessage}>전송</button>  {/* 메시지 전송 버튼 */}
+    </div>
+  );
+}
+
+export default WriteMessage;
+
+
+--------------------------------------------------------------------------------------
+
+
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+import Modal from '../message/Modal'; // 모달 컴포넌트 추가
+import MessageDetail from './MessageDetail';
+
+const Inbox = ({ setContent, isModalOpen, closeModal }) => {
+  const [messages, setMessages] = useState([]);  // 받은 메시지 상태
+  const [newMessages, setNewMessages] = useState(false);  // 새로운 메시지 확인 상태
+  const [selectedMessage, setSelectedMessage] = useState(null); // 선택된 메시지
+
+  // 메시지 조회 함수
+  const fetchMessages = () => {
+    axios.get(`/api/messages/received/user01`)
+      .then(response => {
+        setMessages(response.data);
+        if (response.data.some(message => message.isReading === 1)) {
+          setNewMessages(true);  // 새 메시지 알림 설정
+        }
+      })
+      .catch(error => console.error("Error fetching messages:", error));
+  };
+
+  // 메시지 읽음 처리 함수
+  const markAsRead = (mNum) => {
+    axios.post(`/api/messages/read/${mNum}`)
+      .then(() => fetchMessages())  // 읽음 처리 후 목록 새로고침
+      .catch(error => console.error("Error marking message as read:", error));
+  };
+
+  // 페이지 로드 시 받은 메시지 불러오기
+  useEffect(() => {
+    fetchMessages();
+  }, []);
+
+  // 메시지 세부사항 열기
+  const openMessageDetail = (message) => {
+    setSelectedMessage(message.mnum); // 메시지의 고유 ID(mNum)만 저장
+    console.log(message.mnum);  // 콘솔확인
+    setContent('messageDetail');      // 모달 전환
+  };  
+
+  // 메시지 삭제 함수
+  const deleteMessage = (mNum) => {
+    axios.delete(`/api/messages/delete/${mNum}`)
+      .then(() => fetchMessages())
+      .catch(error => console.error("Error deleting message:", error));
+  };
+
+  return (
+    <div>
+      <h2>쪽지함</h2>
+
+      <div>
+        {messages.length === 0 ? (
+          <div>쪽지가 없습니다.~(&gt;_&lt;。)＼</div>
+        ) : (
+          messages.map((message, index) => (
+            <div key={index} onClick={() => openMessageDetail(message)} style={{ cursor: 'pointer', marginBottom: '10px' }}>
+              {message.memId}님이 보낸 쪽지가 도착했습니다!&emsp;
+              <button onClick={() => deleteMessage(message.mnum)}>삭제</button> &emsp;
+              {message.isReading === 1 ? "읽지 않음" : "읽음"}
+            </div>
+          ))
+        )}
+      </div>
+
+      {/* 새로운 메시지 알림 */}
+      {newMessages && (
+        <div style={{ color: 'red' }}>
+          <p>You have new messages!</p>
+        </div>
+      )}
+
+      {/* 모달을 통해 MessageDetail로 이동 */}
+      {isModalOpen && (
+        <Modal isOpen={isModalOpen} onClose={closeModal} content="messageDetail" selectedMessage={selectedMessage} />
+      )}
+    </div>
+  );
+};
+
+export default Inbox;
+
+
+--------------------------------------------------------------------------------------
+
+import React, { useState, useEffect } from 'react';
+import axios from 'axios';
+
+// npm i axios
+
+const MessageDetail = ({ message }) => {
+  const [messageDetail, setMessageDetail] = useState(null); // 메시지 상세 상태
+
+  // 메시지 가져오기
+  useEffect(() => {
+    console.log("Message ID:", message);
+    if (message) {
+      axios.get(`/api/messages/detail/${message}`) // message는 mNum임
+        .then(response => {
+          setMessageDetail(response.data); // 메시지 상세 데이터를 설정
+        })
+        .catch(error => console.error("Error fetching message:", error));
+    }
+  }, [message]);
+  
+
+  if (!message) {
+    return <div>Error: 메시지가 없습니다.</div>; // message가 없을 때 처리
+  }
+
+  if (!messageDetail) {
+    return <div>Loading...</div>; // 로딩 중 표시
+  }
+
+  return (
+    <div>
+      <div>
+        <h2>쪽지 세부 사항</h2>
+        <p><strong>발신자:</strong> {messageDetail.memId}</p>
+        <p><strong>내용:</strong> {messageDetail.mcontent}</p>
+        <p><strong>수신자:</strong> {messageDetail.friendId}</p>
+        <p><strong>보낸 시간:</strong> {new Date(messageDetail.createSysdate).toLocaleString()}</p>
+      </div>
+
+      <div>
+        <button >쪽지목록</button> 
+        <button >답장</button> {/* 답장 버튼 */}
+        <button >삭제</button> {/* 삭제 버튼 */}
+      </div>
+    </div>
+  );
+};
+
+export default MessageDetail;
+
+----------------------------------------------------------------------------------------
+
+import React, { useState } from 'react';
+import WriteMessage from '../message/WriteMessage';
+import Inbox from '../message/Inbox';
+import MessageDetail from '../message/MessageDetail';
+import './Modal.css'; // 스타일 파일
+
+const Modal = ({ isOpen, onClose, content, setContent, selectedMessage }) => {
+
+  const [position, setPosition] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [offset, setOffset] = useState({ x: 0, y: 0 });
+
+  const handleMouseDown = (e) => {
+    setIsDragging(true);
+    setOffset({
+      x: e.clientX - position.x,
+      y: e.clientY - position.y,
+    });
+  };
+
+  const handleMouseMove = (e) => {
+    if (isDragging) {
+      setPosition({
+        x: e.clientX - offset.x,
+        y: e.clientY - offset.y,
+      });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  if (!isOpen) return null;  // 모달이 열리지 않으면 null 반환
+
+  const renderContent = () => {
+    switch (content) {
+      case 'writeMessage':
+        return <WriteMessage />;
+      case 'inbox':
+        return <Inbox setContent={setContent} />;
+      case 'messageDetail':
+        return <MessageDetail message={selectedMessage} />;  // selectedMessage를 message prop으로 전달
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="modal-overlay" onMouseMove={handleMouseMove} onMouseUp={handleMouseUp}>
+      <div
+        className="modal-content"
+        onMouseDown={handleMouseDown}
+        style={{ transform: `translate(${position.x}px, ${position.y}px)` }}
+      >
+        <button className="modal-close" onClick={onClose}>X</button>
+        {renderContent()}
+      </div>
+    </div>
+  );
+};
+
+export default Modal;
