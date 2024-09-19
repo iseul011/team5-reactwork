@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import './WriteMessage.css';
 
 const WriteMessage = ({ recipient }) => {
   const [receiver, setReceiver] = useState(recipient || '');  // 수신자 상태 초기화
   const [mContent, setmContent] = useState('');  // 메시지 내용 상태
+  const senderId = localStorage.getItem("id");  // 발신자 ID
 
   // 수신자 초기값 설정 (답장 시에만 사용)
   useEffect(() => {
@@ -13,8 +15,14 @@ const WriteMessage = ({ recipient }) => {
   }, [recipient]);
 
   const sendMessage = () => {
+    // 자기 자신에게 메시지를 보내는지 확인
+    if (receiver === senderId) {
+      alert("자기 자신에게는 메시지를 보낼 수 없습니다.");
+      return;
+    }
+
     axios.post('/api/messages/send', {
-      memId: 'user02',  // 발신자 ID (예시)
+      memId: senderId,  // 발신자 ID
       friendId: receiver,  // 수신자 ID
       mcontent: mContent   // 메시지 내용
     })
@@ -27,7 +35,7 @@ const WriteMessage = ({ recipient }) => {
   };
 
   return (
-    <div>
+    <div className='writeMessageContainer'>
       <h5>쪽지 보내기</h5>
       <input
         type="text"

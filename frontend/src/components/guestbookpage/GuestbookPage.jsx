@@ -1,83 +1,200 @@
-// GuestbookPage.js
 import React, { useEffect, useState } from 'react';
 import './GuestbookPage.css';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
 
-function GuestbookPage() {
-  // 방명록 데이터 상태 관리
+function GuestbookPage({ hostId, setHostId }) {
   const [guestbookEntries, setGuestbookEntries] = useState([]);
   const [newEntry, setNewEntry] = useState('');
+  const [errorMessage, setErrorMessage] = useState('');
+  const [nickname, setNickname] = useState('');
+  const [page, setPage] = useState(0); // 현재 페이지 번호
+  const [totalPages, setTotalPages] = useState(0); // 총 페이지 수
+  const memId = localStorage.getItem('id'); // 로그인된 유저의 ID 가져오기
+  const [editMode, setEditMode] = useState(null); // 수정 모드 상태
+  const [editContent, setEditContent] = useState(''); // 수정 중인 내용
+  const [modal, setModal] = useState(null); // 모달창 구분을 위한 상태
 
-  // [
-  //   { id: 1, username: 'USER01', date: '2024-09-01', message: '안녕하세요 잘 부탁드립니다!!' },
-  //   { id: 2, username: 'USER02', date: '2024-09-05', message: '쪽지 주셔서 놀랐어요. 항상 감사합니다.' },
-  //   { id: 3, username: 'USER03', date: '2024-08-25', message: '방가방가' },
-  // ]
-  //방명록 리스트 불러오기
+  const navigate = useNavigate(); // 페이지 이동을 위한 useNavigate hook
+
+  // 방명록 리스트 불러오기
   useEffect(() => {
     axios
-      .get('/guestbook/total')
+      .get('/guestbook/total', { params: { page, size: 5, memId: hostId } })
       .then((response) => {
-        console.log("Fetched images:", response.data);
-        setGuestbookEntries(response.data);
+        setGuestbookEntries(response.data.content);
+        setTotalPages(response.data.totalPages);
       })
       .catch((error) => {
-        console.error("Error fetching images:", error);
-        alert("이미지 목록을 가져오는 중 오류가 발생했습니다.");
+        setErrorMessage('');
       });
-  }, []);
+  }, [page, hostId, guestbookEntries]);
+
+  // 사용자 닉네임 가져오기
+  useEffect(() => {
+    if (!memId) return;
+
+    axios.get(`/member/get/${memId}`)
+      .then((response) => {
+        setNickname(response.data.nickname);
+      })
+      .catch(() => {
+        setErrorMessage('닉네임을 가져오는 중 오류가 발생했습니다.');
+      });
+  }, [memId]);
 
   // 방명록 추가 기능
   const handleAddEntry = () => {
-    if (!newEntry.trim()) return; // 공백 방지
+    if (!newEntry.trim()) {
+      setErrorMessage('내용을 입력해주세요.');
+      return;
+    }
     const newEntryObject = {
-      memId: localStorage.getItem('hostUserId'), // 방명록이 달리는 페이지의 주인 아이디
-      nickname: 'NEWUSER', // 방명록을 다는 유저
-      message: newEntry,
+      memId: hostId, // 방명록이 달리는 페이지 주인
+      nickname: nickname, // 방명록 쓴 사람 닉네임
+      commenter: memId, // 방명록을 쓴 사람
+      gbContent: newEntry,//방명록 내용
     };
-    setGuestbookEntries([newEntryObject, ...guestbookEntries]);
-    setNewEntry('');
+
+    axios.post('/guestbook/add', newEntryObject)
+      .then((response) => {
+        if (response.data === 'success') {
+          setGuestbookEntries([...guestbookEntries, newEntryObject]);
+          setNewEntry('');
+          setErrorMessage('');
+          // window.location.reload();
+          console.log('response.data', response.data)
+        } else {
+          setErrorMessage('방명록 저장 중 문제가 발생했습니다.');
+        }
+      })
+      .catch(() => {
+        setErrorMessage('방명록 저장 중 오류가 발생했습니다.');
+      });
   };
 
-  // 입력 핸들러
-  const handleChange = (e) => {
-    setNewEntry(e.target.value);
+  // 방명록 수정 기능
+  const handleEditMode = (gbNum, content) => {
+    setEditMode(gbNum);
+    setEditContent(content);
   };
 
-  // 방명록 정렬 (최신순/오래된순)
-  const handleSort = (order) => {
-    const sortedEntries = [...guestbookEntries].sort((a, b) => {
-      if (order === 'newest') return new Date(b.date) - new Date(a.date);
-      else return new Date(a.date) - new Date(b.date);
-    });
-    setGuestbookEntries(sortedEntries);
+  const handleSaveEdit = (gbNum) => {
+    axios.put(`/guestbook/update/${gbNum}`, { gbContent: editContent })
+      .then(() => {
+        setGuestbookEntries(
+          guestbookEntries.map((entry) => entry.gbNum === gbNum ? { ...entry, gbContent: editContent } : entry)
+        );
+        setEditMode(null);
+        setEditContent('');
+      })
+      .catch(() => {
+        setErrorMessage('방명록 수정 중 오류가 발생했습니다.');
+      });
+  };
+
+  // 방명록 삭제 기능
+  const handleDeleteEntry = (gbNum) => {
+    if (window.confirm('이 방명록을 삭제하시겠습니까?')) {
+      axios.delete(`/guestbook/delete/${gbNum}`)
+        .then(() => {
+          setGuestbookEntries(guestbookEntries.filter(entry => entry.gbNum !== gbNum));
+        })
+        .catch(() => {
+          setErrorMessage('방명록 삭제 중 오류가 발생했습니다.');
+        });
+    }
+  };
+
+  // "놀러가기" 기능: 해당 사용자의 페이지로 이동
+  const visitFriendPage = (friendId) => {
+    navigate(`/home/${friendId}`); // 해당 사용자의 홈페이지로 이동
+  };
+
+  // "쪽지 보내기" 기능: 해당 사용자에게 쪽지 작성 화면으로 이동
+  const sendMessage = (friendId) => {
+    navigate(`/write/${friendId}`); // 쪽지 작성 화면으로 이동
+  };
+
+  // 페이지 변경 핸들러
+  const handlePageChange = (newPage) => {
+    if (newPage >= 0 && newPage < totalPages) {
+      setPage(newPage);
+    }
+  };
+
+  // 모달 토글 함수
+  const toggleModal = (gbNum) => {
+    setModal(modal === gbNum ? null : gbNum);
   };
 
   return (
     <div className="guestbook-container">
-      <h2>사용자 홈페이지 인삿말</h2>
-      <div className="guestbook-list">
-        <div className="sort-options">
-          <span onClick={() => handleSort('newest')}>최신순</span> |{' '}
-          <span onClick={() => handleSort('oldest')}>오래된순</span>
+      <h2>방명록</h2>
+
+      {/* 글 작성은 memId와 hostId가 다를 때만 가능 */}
+      {memId !== hostId && (
+        <div className="guestbook-input">
+          <textarea
+            value={newEntry}
+            onChange={(e) => setNewEntry(e.target.value)}
+            placeholder="내용을 입력해 주세요."
+          ></textarea>
+          <button className="guestsubmit" onClick={handleAddEntry}>완료</button>
         </div>
+      )}
+
+      {errorMessage && <p className="error-message">{errorMessage}</p>}
+      <div className="guestbook-list">
         {guestbookEntries.map((entry) => (
-          <div key={entry.id} className="guestbook-entry">
+          <div key={entry.gbNum} className="guestbook-entry">
             <div className="entry-header">
-              <span className="username">{entry.username}</span>
-              <span className="date">{entry.date}</span>
+              {/* 닉네임을 클릭하면 모달 창 생성 */}
+              <span className="username" onClick={() => toggleModal(entry.gbNum)} style={{ cursor: 'pointer' }}>
+                {entry.nickname}
+              </span>
+              {modal === entry.gbNum && (
+                <div className="modal-buttons">
+                  <button onClick={() => visitFriendPage(entry.commenter)}>홈피 가기</button>
+                  <button onClick={() => sendMessage(entry.commenter)}>쪽지 보내기</button>
+                </div>
+              )}
+              <span className="date">{new Date(entry.createDate).toLocaleString()}</span>
             </div>
-            <p className="message">{entry.message}</p>
+
+            {/* 글 내용을 표시 */}
+            {editMode === entry.gbNum ? (
+              <div>
+                <textarea
+                  value={editContent}
+                  onChange={(e) => setEditContent(e.target.value)}
+                />
+                <button onClick={() => handleSaveEdit(entry.gbNum)}>저장</button>
+              </div>
+            ) : (
+              <p className="message">
+                {entry.gbContent}
+              </p>
+            )}
+
+            {/* 수정 버튼은 본인이 작성한 글만 보임 */}
+            {entry.commenter === memId && (
+              <button onClick={() => handleEditMode(entry.gbNum, entry.gbContent)}>수정</button>
+            )}
+
+            {/* 삭제 버튼은 본인이 작성한 글이거나 hostId와 memId가 같을 때 보임 */}
+            {(entry.commenter === memId || hostId === memId) && (
+              <button onClick={() => handleDeleteEntry(entry.gbNum)} className="delete-button">삭제</button>
+            )}
           </div>
         ))}
       </div>
-      <div className="guestbook-input">
-        <textarea
-          value={newEntry}
-          onChange={handleChange}
-          placeholder="내용을 입력해 주세요."
-        ></textarea>
-        <button className="guestsubmit" onClick={handleAddEntry}>완료</button>
+
+      {/* 페이지 네이션 버튼 */}
+      <div className="pagination">
+        <button onClick={() => handlePageChange(page - 1)} disabled={page === 0}>이전</button>
+        <span>{page + 1} / {totalPages}</span>
+        <button onClick={() => handlePageChange(page + 1)} disabled={page + 1 === totalPages}>다음</button>
       </div>
     </div>
   );

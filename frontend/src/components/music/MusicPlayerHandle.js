@@ -50,24 +50,24 @@ function MusicPlayerHandle({ currentSong, isPlaying, onPlayPauseClick, onNextPre
 
       {/* 오디오 요소 */}
       <audio
-        src={`./songs/${currentSong.audio}.mp3`}  // 현재 곡 오디오 파일 경로 설정
+        src={`/songs/${currentSong.audio}.mp3`}  // 현재 곡 오디오 파일 경로 설정
         ref={audioRef}  // audioRef를 통해 오디오 요소에 접근
         autoPlay={isPlaying}  // isPlaying 상태에 따라 자동 재생
         controls  // 기본 오디오 컨트롤 표시
         loop={isRepeating}  // isRepeating 상태에 따라 반복 재생 설정
+        onError={(e) => console.error("Failed to load audio:", e)}
       >
         Your browser does not support the audio element.  {/* 오디오를 지원하지 않는 브라우저를 위한 메시지 */}
       </audio>
 
       {/* 음악 재생 컨트롤 버튼 */}
       <div className="music__progress">
-        <button onClick={() => onNextPrevClick(false)}>⏪</button>  {/* 이전 곡 */}
-        <button onClick={onPlayPauseClick}>{isPlaying ? "⏸" : "▶"}</button>  {/* 재생/일시정지 */}
-        <button onClick={() => onNextPrevClick(true)}>⏩</button>  {/* 다음 곡 */}
-        <button onClick={handleRepeatToggle}>
-          {isRepeating ? "🔂" : "🔁"}  {/* 반복 여부에 따라 아이콘 변경 */}
-        </button>
-        <button onClick={toggleList}>🎵</button>  {/* 리스트 토글 버튼 */}
+        <button onClick={() => onNextPrevClick(false)} className="before-music"/>  {/* 이전 곡 */}
+        <button onClick={onPlayPauseClick} className={isPlaying ? "stop-music" : "play-music"} />  {/* 재생/일시정지 */}
+        <button onClick={() => onNextPrevClick(true)} className="next-music" />  {/* 다음 곡 */}
+        <button onClick={handleRepeatToggle}
+          className={isRepeating ? "repeatOne-music" : "repeat-music"} /> {/* 반복 여부에 따라 아이콘 변경 */}
+        <button onClick={toggleList} className="list-music"/>  {/* 리스트 토글 버튼 */}
       </div>
 
        {/* 오른쪽에 패널처럼 리스트를 표시 */}

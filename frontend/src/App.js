@@ -2,68 +2,82 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
 import MainPanel from './components/mainPanel/MainPanel';
-import { BrowserRouter as Router, Route, Routes, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, useNavigate, useParams } from 'react-router-dom';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Login from './components/login/Login.jsx';
 import SignUpPage from './components/SignUpPage/SignUpPage.jsx';
+import FindIdPassword from './components/FindIdPassword/FindIdPassword';
+import ResetPassword from './components/FindIdPassword/ResetPassword';
+
 
 function App() {
+  // onLoginSuccess={() => setIsLoggedIn(true)}
   const navigate = useNavigate();
-
+  
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [hostId, setHostId] = useState(localStorage.getItem('id') || '');
-  const [showContinuePrompt, setShowContinuePrompt] = useState(false);
+  const [hostId, setHostId] = useState('a');
+  const { paramHostId } = useParams();
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    const id = localStorage.getItem('id');
-    
-    if (token && id) {
-      setShowContinuePrompt(true); // 로그인된 정보가 있으면 계속할지 물어보는 창 띄우기
+  // useEffect(() => {
+  //   // 서버가 재시작했는지 여부를 확인할 수 있는 상태를 체크하는 로직이 있다고 가정
+  //   const isServerRestarted = checkServerStatus(); // 서버 상태 확인 로직
+  
+  //   if (isServerRestarted) {
+  //     // 서버가 재시작되었다면 로컬 스토리지 클리어
+  //     localStorage.clear();
+  //   }
+  // }, []);
+    useEffect(() => {
+      // 로컬 스토리지에서 로그인 상태 확인
+      const token = localStorage.getItem('token');
+      const id = localStorage.getItem('id');
+      if (token && id) {
+        setHostId(localStorage.getItem('id'))
+        setIsLoggedIn(true);
+      }
+    }, []);
+  //  useEffect(()=>{
+  //   setHostId(paramHostId);
+  //  },[paramHostId])
+
+
+    const handleLogin = () =>{
+      setIsLoggedIn(true);
+      setHostId(localStorage.getItem('id'));
     }
-  }, []);
+    const handleLogout = () => {
+    
+      setIsLoggedIn(false); // 로그인 상태를 false로 설정
+      localStorage.clear(); // 로컬 스토리지 클리어
+    };
 
-  const handleContinue = () => {
-    setIsLoggedIn(true);
-    setHostId(localStorage.getItem('id'));
-    setShowContinuePrompt(false);
-    navigate(`/home/${localStorage.getItem('id')}`);
-  };
+      //서버 로그인한상태로 껐다가 다시켰을때 빈 메인페널만 보이던 문제 수정 코드
+      useEffect(()=>{
+        if(!sessionStorage.getItem('login')){
+          setIsLoggedIn(false); // 로그인 상태를 false로 설정
+          localStorage.clear(); // 로컬 스토리지 클리어
+        }
+      })
 
-  const handleCancel = () => {
-    setIsLoggedIn(false);
-    setShowContinuePrompt(false);
-    localStorage.clear(); // 로컬 스토리지 비우기
-  };
-
-  const handleLogin = () => {
-    setIsLoggedIn(true);
-    setHostId(localStorage.getItem('id'));
-  };
-
-  const handleLogout = () => {
-    setIsLoggedIn(false);
-    localStorage.clear();
-    navigate('/'); // 로그아웃 후 로그인 페이지로 이동
-  };
-
+      
+      
   return (
-    <div className="App">
-      {showContinuePrompt ? (
-        <div className="continue-prompt">
-          <p>{localStorage.getItem('id')}님으로 계속 실행하시겠습니까?</p>
-          <button onClick={handleContinue}>계속 진행</button>
-          <button onClick={handleCancel}>취소</button>
-        </div>
-      ) : isLoggedIn ? (
-        <MainPanel onLogout={handleLogout} hostId={hostId} setHostId={setHostId} />
-      ) : (
+    
+      <div className="App">
+        { isLoggedIn ?
+         <MainPanel onLogout={handleLogout} hostId={hostId} setHostId={setHostId}/>
+         : 
+      <div>
         <Routes>
-          <Route path="/" element={<Login onLoginSuccess={handleLogin} />} />
-          <Route path="/SignUpPage" element={<SignUpPage />} />
+          <Route path="/" element={<Login onLoginSuccess={handleLogin}/>} />
+          <Route path="/SignUpPage" element={<SignUpPage />}/>
+          <Route path="/FindIdPassword" element={<FindIdPassword />}/>
+          <Route path="/resetPassword" element={<ResetPassword />} />
         </Routes>
-      )}
-    </div>
+      </div>
+        }
+      </div>
+    
   );
 }
 

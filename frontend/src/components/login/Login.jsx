@@ -1,12 +1,9 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import MainPanel from '../mainPanel/MainPanel';
-// import SignUpPage from '../SignUpPage/SignUpPage';
-{/* <style>
-@import url('https://fonts.googleapis.com/css2?family=Asap:ital,wght@0,100..900;1,100..900&family=Noto+Sans+KR&family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&display=swap');
-</style> */}
+
 
 
 const Login = ({ onLoginSuccess }) => {
@@ -32,6 +29,7 @@ const Login = ({ onLoginSuccess }) => {
         localStorage.clear();
         localStorage.setItem('id', result.data[1]); // memId 저장
         localStorage.setItem('token', result.data[0]); // 토큰 저장
+        sessionStorage.setItem('login', true);  // 로그인한상태로 껐을때 재 접속시 재 로그인 하게 해주는 키 코드
         
 
         
@@ -47,12 +45,7 @@ const Login = ({ onLoginSuccess }) => {
     }
   };
 
-  const handleLogout = () => {
-    localStorage.clear();
-    setMessage('로그아웃 되었습니다.');
-  };
-
-
+ 
   // const handleSignUp = () =>{
   //   navigate('/SignUpPage');
   // }
@@ -83,7 +76,7 @@ const Login = ({ onLoginSuccess }) => {
           <tr>
             <td><a href="/SignUpPage" className="signUp">회원가입</a></td>
             <td>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</td>
-            <td><a href="#"className="find">아이디/비밀번호 찾기</a></td>
+            <td><a href="/FindIdPassword"className="find">아이디/비밀번호 찾기</a></td>
           </tr>
         </table>
         <p className="description">
