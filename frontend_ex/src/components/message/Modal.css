@@ -1,0 +1,44 @@
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  
+
+  z-index: 1000;  /* 모달이 페이지 요소들 위에 보이게 설정 */
+
+  /* 모달 뒤에 있는 요소를 클릭할 수 있게 설정 */
+  pointer-events: none;
+}
+
+.modal-content {
+  background: rgb(40, 194, 66);
+  padding: 20px;
+  border-radius: 10px;
+  width: 80%;
+  max-width: 500px;
+  max-height: 40vh; /* 모달의 최대 높이를 고정 */
+  overflow: auto; /* 콘텐츠가 넘칠 경우 스크롤이 가능하도록 설정 */
+  z-index: 1001;
+
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);  /* 그림자 효과 */
+
+  /* 모달 내용은 여전히 클릭 가능 */
+  pointer-events: all;
+}
+  
+.modal-close {
+  width: 40px;
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+}
+  
