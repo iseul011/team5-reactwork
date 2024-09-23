@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-// npm i axios
-// npm i react-router-dom
-
 const MessageDetail = () => {
   const { mNum } = useParams(); // URL에서 mNum을 가져옵니다.
   const [message, setMessage] = useState(null); // 메시지 상태

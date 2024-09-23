@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import axios from 'axios';
 
-// npm i axios
-// npm i react-router-dom
-
 const WriteMessage = () => {
   // URL 쿼리 파라미터에서 수신자 ID 받아오기
   const [searchParams] = useSearchParams();

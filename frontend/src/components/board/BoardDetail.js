@@ -6,7 +6,7 @@ import './BoardDetailCss.css';
 import 'slick-carousel/slick/slick.css';
 import 'slick-carousel/slick/slick-theme.css';
 
-function BoardDetail() {
+function BoardDetail({ hostId }) {
   const { bNum } = useParams();  // URL 파라미터에서 bNum을 가져옵니다.
   const [detail, setDetail] = useState(null);
   const navigate = useNavigate();
@@ -28,7 +28,7 @@ function BoardDetail() {
       axios.delete(`/board/delete/${bNum}`)
         .then(() => {
           alert("게시물이 삭제되었습니다.");
-          navigate(`/home`);  // 삭제 후 메인 페이지로 이동
+          navigate(`/bulletin-board/${ hostId }`);  // 삭제 후 게시판으로 이동
         })
         .catch((error) => {
           console.error("Error deleting post:", error);
@@ -41,9 +41,14 @@ function BoardDetail() {
     navigate(`/boardEdit/${bNum}`);  // 수정 페이지로 이동
   };
 
+  const BoardList = () => {
+    navigate(`/bulletin-board/${ hostId }`);  // 방명록 페이지로 이동
+  };
+
   if (!detail) {
     return <div>Loading...</div>;  // 데이터를 가져오는 중일 때 로딩 메시지
   }
+  
 
   // 슬라이더 설정 (이미지가 하나일 때 infinite 옵션 끄기)
   const sliderSettings = {
@@ -57,17 +62,18 @@ function BoardDetail() {
 
   return (
     <div className="board-in">
-      <div className="board-in-box">
-        <h1 className="board-count">{bNum}</h1>
-        <h2 className="board-title-in">{detail.btitle}</h2>
+      <div className="board-title-inbox">
+        <button onClick={BoardList}
+        className="board-listback" >목록으로</button>
         {/* 수정 및 삭제 버튼 추가 */}
-        <div className="board-edit-button">
-          <button onClick={handleEdit}>수정하기</button>
-          <button onClick={handleDelete}>삭제하기</button>
+        <div>
+          <button onClick={handleEdit} className="board-edit-btn">수정</button>
+          <button onClick={handleDelete} className="board-edit-btn">삭제</button>
         </div>
       </div>
 
       {/* 이미지 슬라이더 */}
+      <div className="board-content-box">
       <Slider {...sliderSettings}>
         {detail.imgPath.map((img, index) => (
           <div key={index}>
@@ -79,10 +85,12 @@ function BoardDetail() {
           </div>
         ))}
       </Slider>
-
-      <p className="board-content-in">{detail.bcontent}</p>
-      <p>{detail.bNum}</p>
-
+      <div className="board-text-box">
+        <h2 className="board-title-in">{detail.btitle}</h2>
+        <p className="board-content-in">{detail.bcontent}</p>
+        <p>{detail.bNum}</p>
+      </div>
+      </div>
     </div>
   );
 }
