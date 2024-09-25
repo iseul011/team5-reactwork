@@ -17,6 +17,9 @@ import ProfileEdit from '../ProfileEdit/ProfileEdit';
 import BoardEdit from './../board/BoardEdit';
 import Restaurant from '../restaurant/Restaurant';
 import FavoriteList from '../restaurant/FavoriteList';
+import WalkingCourse from '../Walking/WalkingCourse';
+import VoteCreate from '../Walking/VoteCreate';
+import WalkingCourseVote from '../Walking/WalkingCourseVote';
 
 
 function Sidebar({hostId, setHostId}) {
@@ -90,11 +93,12 @@ function Sidebar({hostId, setHostId}) {
             onClick={() => handleIconClick(3)}
           ></div>
         </Link>
-
+        <Link to={`/WalkingCourse/${hostId}`}>
         <div
           className={`icon walk ${activeIcon === 4 ? 'active' : ''}`}
           onClick={() => handleIconClick(4)}
         ></div>
+        </Link>
 
         <Link to={`/restaurants/${hostId}`}>
           <div
@@ -124,6 +128,11 @@ function Sidebar({hostId, setHostId}) {
           <Route path="/GuestbookPage/:hostId" element={<GuestbookPage hostId={hostId} setHostId={setHostId}/>} />
 
           <Route path="/favorites/:hostId" element={<FavoriteList hostId={hostId} setHostId={setHostId}/>} />
+          
+          {/* 산책로 링크 */}
+          <Route path="/WalkingCourse/:hostId" element={<WalkingCourse hostId={hostId} setHostId={setHostId}/>} />
+          <Route path="/vote-create/:hostId" element={<VoteCreate hostId={hostId} setHostId={setHostId}/>} />
+          <Route path="/WalkingCourseVote/:hostId" element={<WalkingCourseVote hostId={hostId} setHostId={setHostId}/>} />
 
           <Route path="/write/:hostId" element={<WriteMessage hostId={hostId} setHostId={setHostId}/>} />
           <Route path="/inbox/:hostId" element={<Inbox hostId={hostId} setHostId={setHostId}/>} />

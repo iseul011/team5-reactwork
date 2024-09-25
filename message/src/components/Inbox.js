@@ -2,9 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-// npm i axios
-// npm i react-router-dom
-
 const Inbox = () => {
   const [messages, setMessages] = useState([]);  // 받은 메시지 상태
   const [newMessages, setNewMessages] = useState(false);  // 새로운 메시지 확인 상태
@@ -17,7 +14,7 @@ const Inbox = () => {
       .then(response => {
         console.log("Received messages:", response.data);  // 응답 데이터 콘솔 출력
         setMessages(response.data);
-        if (response.data.some(message => message.isReading === 1)) {
+        if (response.data.length > 0) {
           setNewMessages(true);  // 새 메시지 알림 설정
         }
       })
@@ -41,7 +38,6 @@ const Inbox = () => {
 
   // 쪽지 클릭 시 상세 페이지로 이동
   const viewMessageDetail = (mNum) => {
-    markAsRead(mNum);  // 메시지 읽음 처리
     navigate(`/message/${mNum}`);
   };
 
@@ -80,10 +76,10 @@ const Inbox = () => {
             
             <div key={index}>
               <br /><br /><br />  
-              <div key={index} onClick={() => viewMessageDetail(message.mnum)} 
+              <div key={index} onClick={() => {viewMessageDetail(message.mnum); markAsRead(message.mnum)}} 
                                           style={{ cursor: 'pointer', padding: '10px', border: '1px solid black', marginBottom: '5px' }}>
-                {message.memId}님이 보낸 쪽지가 도착했습니다!&emsp;
-                <p><strong>{message.isReading === 1 ? "읽지 않음" : "읽음"}</strong></p>
+                {message.memId}님께 온 쪽지가 도착했습니다!&emsp;
+                <p><strong>읽음 여부:</strong> {message.isReading === 1 ? "읽지 않음" : "읽음"}</p>
               </div>
               {/* <button onClick={() => handleReply(message)}>답장</button> 답장 버튼 */}
               <button onClick={() => deleteMessage(message.mnum)}>삭제</button> {/* 삭제 버튼 */}
