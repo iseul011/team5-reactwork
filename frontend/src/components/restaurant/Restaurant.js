@@ -8,6 +8,7 @@ function RestaurantMap() {
   const [map, setMap] = useState(null);
   const [markers, setMarkers] = useState([]); // 마커들을 저장할 상태
   const [searchKeyword, setSearchKeyword] = useState(""); // 기본 검색 키워드 설정
+  const [isAddingFavorite, setIsAddingFavorite] = useState(false); // 찜하기 버튼 비활성화 상태
 
   // 네이버 지도 스크립트를 비동기적으로 로드하는 함수
   const loadNaverMapScript = () => {
@@ -59,8 +60,10 @@ function RestaurantMap() {
       .then((data) => {
         console.log("API 응답 데이터:", data);
 
-        const restaurantData = data?.searchPoiInfo?.pois?.poi;
+        let restaurantData = data?.searchPoiInfo?.pois?.poi;
         if (Array.isArray(restaurantData)) {
+          // "주차장"이 포함된 음식점 이름을 제외하고 목록 필터링
+          restaurantData = restaurantData.filter(restaurant => !restaurant.name.includes("주차장"));
           setRestaurants(restaurantData);
           displayMarkersOnMap(restaurantData); // 데이터를 지도에 마커로 표시
           moveMapToCenter(restaurantData); // 검색된 음식점들의 중간 위치로 지도 중심 이동
@@ -172,12 +175,13 @@ function RestaurantMap() {
       detailBizName: restaurant.detailBizName || "정보 없음",
       frontLat: restaurant.frontLat || 0,
       frontLon: restaurant.frontLon || 0,
-      telNo: restaurant.telNo || "전화번호 없음",
+      telNo: restaurant.telNo? restaurant.telNo : "전화번호 없음", // 전화번호가 없을 경우 기본값 설정
       menu: restaurant.menu || "메뉴 정보 없음",
     });
   };
-  
-  // 찜하기 버튼
+
+
+  // 찜하기 버튼 클릭 시 호출
   const handleFavorite = (restaurant) => {
     if (!restaurant || !restaurant.id || !restaurant.name || !restaurant.frontLat || !restaurant.frontLon) {
       alert("선택된 음식점 정보가 올바르지 않습니다.");
@@ -185,10 +189,23 @@ function RestaurantMap() {
       return;
     }
 
-    fetch(`/api/favorites/add?memId=${localStorage.getItem("id")}&restaurantId=${restaurant.id}&name=${restaurant.name}&address=${restaurant.address}&foodType=${restaurant.detailBizName}&latitude=${restaurant.frontLat}&longitude=${restaurant.frontLon}`, {
-      method: "POST",               // memId를 동적으로 사용
+    setIsAddingFavorite(true); // 찜 추가 버튼을 비활성화
+
+    fetch(`/api/favorites/add?memId=${localStorage.getItem("id")}&restaurantId=${restaurant.id}&name=${restaurant.name}&address=${restaurant.address}&foodType=${restaurant.detailBizName}&latitude=${restaurant.frontLat}&longitude=${restaurant.frontLon}&telNo=${restaurant.telNo}`, {
+      method: "POST",
     })
-      .then(() => alert("찜한 음식점에 추가되었습니다!"))
+      .then((response) => {
+        if (response.ok) {
+          alert("찜한 음식점에 추가되었습니다!");
+        } else {
+          return response.json().then((data) => {
+            alert(data.message);  // 서버에서 온 오류 메시지 표시
+          });
+        }
+      })
+      .finally(() => {
+        setIsAddingFavorite(false); // 응답 후 버튼 다시 활성화
+      })
       .catch((error) => console.error("Error adding favorite:", error));
   };
 
@@ -202,43 +219,58 @@ function RestaurantMap() {
       {/* 네이버 지도 표시 */}
       <div id="map" className="map"></div>
 
-      {/* 음식점 목록 표시 및 지역 검색 기능 */}
-      <div className="restaurant-list">
-        {selectedRestaurant ? (
-          <div className="restaurant-details">
-            <h3>{selectedRestaurant.name}</h3> {/* 음식점 이름에서 [] 제거된 이름 사용 */}
-            <p>주소: {selectedRestaurant.address}</p>
-            <p>전화번호: {selectedRestaurant.telNo}</p>
-            <p>음식종류: {selectedRestaurant.detailBizName}</p>
-            <p>메뉴: {selectedRestaurant.menu}</p>
-            <button onClick={() => handleFavorite(selectedRestaurant)}>찜하기</button>
-            <button onClick={handleBackToList}>뒤로가기</button>
+      <div className="bar">
+        {/* 검색 및 나의 찜 목록 버튼을 나란히 배치하는 컨테이너 */}
+        <div className="search-container">
+          <div className="search-bar">
+            <Link to={`/restaurants/${localStorage.getItem("id")}`}>
+              <button>검색</button>
+            </Link>
           </div>
-        ) : (
-          <>
-            <div className="search-bar">
-              <h3>음식점 검색</h3>
-              <input
-                type="text"
-                value={searchKeyword}
-                onChange={(e) => setSearchKeyword(e.target.value)}
-                placeholder="지역 또는 키워드 검색"
-              />
-              <button onClick={handleSearch}>검색</button>
-            </div>
 
+          <div className="favorite-button">
+            <Link to={`/favorites/${localStorage.getItem("id")}`}>
+              <button>나의 찜</button>
+            </Link>
+          </div>
+        </div>
+
+        <h3>음식점 검색</h3>
+        <div className="search-input-group">
+          <input
+            type="text"
+            value={searchKeyword}
+            onChange={(e) => setSearchKeyword(e.target.value)}
+            placeholder="지역 또는 키워드 검색"
+          />
+          <button onClick={handleSearch}>검색</button>
+        </div>
+
+        {/* 음식점 목록 표시 및 지역 검색 기능 */}
+        <div className="restaurant-list">
+          {selectedRestaurant ? (
+            <div className="restaurant-details">
+              <h5>{selectedRestaurant.name}</h5>
+              <p>주소: {selectedRestaurant.address}</p>
+              <p>전화번호: {selectedRestaurant.telNo}</p>
+              <p>음식종류: {selectedRestaurant.detailBizName}</p>
+              <p>메뉴: {selectedRestaurant.menu}</p>
+              <button onClick={() => handleFavorite(selectedRestaurant)} disabled={isAddingFavorite}>
+                 찜하기
+              </button>
+              <button onClick={handleBackToList}>뒤로가기</button>
+            </div>
+          ) : (
             <ul>
               {restaurants.length === 0 ? (
                 <p>검색 결과가 없습니다.</p>
               ) : (
                 restaurants
-                  .filter((restaurant) => !restaurant.name.includes("주차장")) // 주차장 필터링
                   .map((restaurant) => {
                     const address = `${restaurant.upperAddrName || ''} ${restaurant.middleAddrName || ''} ${restaurant.roadName || ''} ${restaurant.firstBuildNo || ''}`.trim();
-                    const restaurantName = restaurant.name.replace(/\[.*?\]/g, "").trim(); // []와 그 안의 내용 제거
-
+                    const restaurantName = restaurant.name.replace(/\[.*?\]/g, "").trim();
                     return (
-                      <li key={restaurant.id} onClick={() => handleRestaurantClick(restaurant)}> {/* 클릭 시 상세보기 이동 */}
+                      <li key={restaurant.id} onClick={() => handleRestaurantClick(restaurant)}>
                         <strong>{restaurantName}</strong>
                         <p>주소: {address}</p>
                         <p>전화번호: {restaurant.telNo}</p>
@@ -247,18 +279,8 @@ function RestaurantMap() {
                   })
               )}
             </ul>
-
-            {/* 나의 찜 버튼 추가 */}
-            <div style={{ marginTop: '20px' }}>
-              <Link to={`/favorites/${localStorage.getItem("id")}`}>
-                <button style={{ width: '100%', padding: '10px', backgroundColor: '#4caf50', color: 'white', border: 'none', borderRadius: '4px' }}>
-                  나의 찜 목록 보기
-                </button>
-              </Link>
-            </div>
-
-          </>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

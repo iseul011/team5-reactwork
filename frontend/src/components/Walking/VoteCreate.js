@@ -91,35 +91,21 @@ function VoteCreate() {
 
     // 친구 선택 시 선택된 친구 목록에 추가하는 함수
     const handleAddFriend = (friend) => {
-        setSelectedFriends((prevSelectedFriends) => {
-            // 친구가 이미 목록에 있는지 확인
-            const alreadyAdded = prevSelectedFriends.some((f) => f.id === friend.id);
-            
-            if (!alreadyAdded) {
-                // 친구가 목록에 없으면 추가
-                const updatedFriends = [...prevSelectedFriends, friend];
-                
-                // participantIds도 함께 업데이트
-                setParticipantIds((prevParticipantIds) => {
-                    const updatedParticipantIds = [...new Set([...prevParticipantIds, friend.id])];
-                    return updatedParticipantIds;
-                });
-                
-                return updatedFriends;
+        setSelectedFriends(prevSelectedFriends => {
+            // 친구가 이미 선택된 목록에 있는지 확인
+            if (!prevSelectedFriends.some(f => f.id === friend.id)) {
+                // 새로운 친구 추가
+                setParticipantIds(prevParticipantIds => [...prevParticipantIds, friend.id]);  // 친구 ID를 participantIds에 추가
+                return [...prevSelectedFriends, friend];  // 새로운 친구 목록 반환
             }
-    
-            return prevSelectedFriends; // 이미 추가된 친구면 상태 유지
+            return prevSelectedFriends;  // 이미 추가된 친구는 무시
         });
     };
-    
-    
-    
-
 
     // 친구 삭제
     const handleRemoveFriend = (friendId) => {
-        setSelectedFriends(prevFriends => prevFriends.filter(f => f.id !== friendId));
-        setParticipantIds(prevIds => prevIds.filter(id => id !== friendId));
+        setSelectedFriends((prevFriends) => prevFriends.filter((friend) => friend.id !== friendId));
+        setParticipantIds((prevIds) => prevIds.filter((id) => id !== friendId));
     };
 
     const handleSubmit = (e) => {
