@@ -59,12 +59,12 @@ useEffect(() => {
           setTodayVisit(0); // 오류 발생 시 null로 설정
           setTotalVisit(0); // 오류 발생 시 null로 설정
       }); 
-}, [hostId]);
+}, [hostId, todayVisit]);
 
  return (
    <div className="header-section">
      <p className="header-visit">TODAY : {todayVisit}</p>
-     <h2 className="header-visit">TOTAL : {totalVisit}</h2>
+     <h2 className="header-total">TOTAL : {totalVisit}</h2>
 
     </div>
   );

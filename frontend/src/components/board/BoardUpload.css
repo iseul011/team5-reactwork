@@ -1,12 +1,13 @@
 .BoardUpload-box {
     position:absolute;
-    top: 185px; left:220px;
+    top: 185px; left:230px;
     width: 750px;
     height: 500px;
     padding:20px 40px 20px ;
     background-color: rgb(255, 255, 255);
     border-radius: 16px;
     font-family: "Noto Sans KR", sans-serif;
+    border : solid 2px #7a63ff49;
 }
 .BUTitle {
     font-size:9pt;
@@ -111,6 +112,7 @@
   .BoardUploadTitle:focus, .BoardUploadContent:focus { background-color:#f8f7ff;}
 
   .BoardUploadContent {
+    padding:10px;
     font-size: 10pt;
     font-weight: 500;
     color:rgb(63, 63, 63);
@@ -122,9 +124,7 @@
   .BoardUploadContent::placeholder {
     color: rgb(194, 194, 194);
   }
-  .BUB{
-    position:absolute;
-    left:610px;
+  .BUB,.BUC{
     border: none;
     font-size:10pt;
     font-weight: 500;
@@ -134,7 +134,7 @@
     border-radius: 12px;
     margin-top:5px;
   }
-  .BUB:hover {
+  .BUB:hover,.BUC:hover {
     background-color: #c5c9ff;
     border-radius: 12px;
   }

@@ -3,14 +3,14 @@
 
 .board-in{
   position:absolute;
-  top: 185px; left:220px;
+  top: 185px; left:230px;
   font-family: "Noto Sans KR", sans-serif;
 }
 .board-title-inbox {
   position:absolute;
   display: flex;
   align-items: center;
-  width:750px; height: 40px;
+  width:750px; height: 50px;
   padding-left:20px;
 }
 .board-listback, 
@@ -22,9 +22,17 @@
   background-color: transparent;
 }
 .board-edit-btn{
+  position: relative;
+  left:580px;
+}
+.board-listback:hover,
+.board-edit-btn:hover {
+  background-color:#d6cfff;
+  border-radius: 30px;
 }
 
 .board-content-box{
+  border : solid 2px #7a63ff49;
   width: 750px;
   height: 500px;
   background-color: rgb(255, 255, 255);

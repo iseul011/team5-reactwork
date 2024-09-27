@@ -197,9 +197,11 @@ function RestaurantMap() {
       .then((response) => {
         if (response.ok) {
           alert("찜한 음식점에 추가되었습니다!");
+        } else if (response.status === 409) {
+          alert("이미 찜한 음식점입니다.");
         } else {
           return response.json().then((data) => {
-            alert(data.message);  // 서버에서 온 오류 메시지 표시
+            alert(data.message);
           });
         }
       })

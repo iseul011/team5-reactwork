@@ -1,13 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import './Login.css';
 import MainPanel from '../mainPanel/MainPanel';
+import CharacterImg from '../../img/characterImg/loginImg2.png';
+import Stars from './Stars';  // 별 효과 컴포넌트 추가
 
 const Login = ({ onLoginSuccess }) => {
   const [userid, setUserid] = useState('');
   const [pass, setPass] = useState('');
   const [message, setMessage] = useState('');
+  const [showMessage, setShowMessage] = useState(false);  // 메시지 표시 상태
   const navigate = useNavigate();
 
   const handleLogin = async () => {
@@ -28,10 +31,12 @@ const Login = ({ onLoginSuccess }) => {
         navigate(`/home/${result.data[1]}`); // 메인 페이지로 리다이렉트
       } else {
         setMessage('잘못된 사용자 이름 또는 비밀번호');
+        setShowMessage(true);  // 메시지 표시
       }
     } catch (error) {
       console.error('로그인 오류:', error);
       setMessage('로그인 실패: 서버 오류가 발생했습니다.');
+      setShowMessage(true);  // 메시지 표시
     }
   };
 
@@ -41,8 +46,19 @@ const Login = ({ onLoginSuccess }) => {
     }
   };
 
+  // 5초 후에 메시지 자동으로 사라지게 하기
+  useEffect(() => {
+    if (showMessage) {
+      const timer = setTimeout(() => {
+        setShowMessage(false);  // 메시지 숨기기
+      }, 5000);  // 5초 후
+
+      return () => clearTimeout(timer);  // 타이머 정리
+    }
+  }, [showMessage]);
+
   return (
-    <div>
+    <div className="loginBox">
       {localStorage.getItem('token') ? (
         <div>
           <MainPanel />
@@ -50,6 +66,11 @@ const Login = ({ onLoginSuccess }) => {
       ) : (
         <div className="login-form">
           <h2 className="loginAccount">Login Account</h2>
+          {showMessage && (
+        <p className={`loginErrorMessage ${showMessage ? '' : 'hidden'}`}>
+          {message}
+        </p>
+      )}
           <table>
             <tr>
               <input
@@ -89,9 +110,10 @@ const Login = ({ onLoginSuccess }) => {
             <br />
             함께 웃고, 함께 공유하는 행복한 순간을 만끽하세요 !
           </p>
+          <div className="light"></div>
+          <div><img className="loginImg-box" src={CharacterImg}/></div>
         </div>
       )}
-      <p>{message}</p>
     </div>
   );
 }
